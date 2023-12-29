@@ -1,34 +1,26 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import ContactForm from './Forms/ContactForm';
 import Filter from './Filter/Filter';
 import ContactsList from './ContactsList';
 import { nanoid } from 'nanoid';
 
-class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+const App = () => {
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(window.localStorage.getItem('contacts')) ?? []
+  );
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
+  useEffect(() => {
+    window.localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-    if (parsedContacts) this.setState({ contacts: parsedContacts });
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts)
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-  }
-
-  createUser = data => {
+  const createUser = data => {
     const newUser = {
       ...data,
       id: nanoid(),
     };
 
-    const isDuplicated = this.state.contacts.find(
+    const isDuplicated = contacts.find(
       el => el.name.toLowerCase() === data.name.toLowerCase()
     );
 
@@ -37,40 +29,35 @@ class App extends Component {
       return;
     }
 
-    this.setState(prev => ({ contacts: [...prev.contacts, newUser] }));
+    setContacts(prev => [...prev, newUser]);
   };
 
-  deleteUser = id => {
-    this.setState(prev => ({
-      contacts: prev.contacts.filter(el => el.id !== id),
-    }));
+  const deleteUser = id => {
+    setContacts(prev => prev.filter(el => el.id !== id));
   };
 
-  searchUser = ({ target: { value } }) => {
-    this.setState({ filter: value });
+  const searchUser = ({ target: { value } }) => {
+    setFilter(value);
   };
 
-  getFilteredUsers = () => {
-    const { filter, contacts } = this.state;
+  const getFilteredUsers = () => {
     const normalizedFilter = filter.toLowerCase();
     return contacts.filter(el =>
       el.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  render() {
-    const filteredUsers = this.getFilteredUsers();
+  const filteredUsers = getFilteredUsers();
 
-    return (
-      <div>
-        <h1>Phonebook</h1>
-        <ContactForm createUser={this.createUser} />
-        <h2>Contacts</h2>
-        <Filter value={this.state.filter} searchUser={this.searchUser} />
-        <ContactsList user={filteredUsers} deleteUser={this.deleteUser} />
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <h1>Phonebook</h1>
+      <ContactForm createUser={createUser} />
+      <h2>Contacts</h2>
+      <Filter value={filter} searchUser={searchUser} />
+      <ContactsList user={filteredUsers} deleteUser={deleteUser} />
+    </div>
+  );
+};
 
 export default App;
