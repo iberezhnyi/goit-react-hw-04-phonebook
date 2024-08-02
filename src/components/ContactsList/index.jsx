@@ -17,8 +17,8 @@ ContactsList.propTypes = {
   user: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
       number: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
     }).isRequired
   ).isRequired,
   deleteUser: PropTypes.func.isRequired,
